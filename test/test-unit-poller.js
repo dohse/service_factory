@@ -43,8 +43,7 @@ U['with successfull connect'] = function(test) {
   var self = this;
 
   var socket = self.socket;
-  self.socket.on.withArgs('connect').yields();
-  // socket.on = sinon.spy(filterOn('connect'));
+  socket.on = sinon.spy(filterOn('connect'));
 
   self.poller.poll(function(err) {
     test.ifError(err);
@@ -95,16 +94,15 @@ U['is cancelable'] = function(test) {
   var self = this;
 
   var socket = self.socket;
-  var error = new Error('Dummy error');
   socket.on = sinon.spy(filterOn('error'));
 
   self.poller.wait(function(err) {
-    test.ok(err instanceof Error);
+    test.equal(err, 'error');
 
     test.done();
   });
 
-  self.poller.cancel();
+  self.poller.cancel('error');
 };
 
 U['works with multiple callbacks'] = function(test) {
