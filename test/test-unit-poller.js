@@ -6,15 +6,12 @@ var sinon = require('sinon');
 
 
 exports.setUp = function(cb) {
-  this.net_Socket = net.Socket;
+  this.socket = new net.Socket;
+  sinon.stub(this.socket, 'on');
+  sinon.stub(this.socket, 'connect');
+  sinon.stub(this.socket, 'destroy');
 
-
-  this.socket = {
-    on: sinon.stub(),
-    connect: sinon.stub(),
-    destroy: sinon.stub()
-  }
-  net.Socket = sinon.stub();
+  sinon.stub(net, 'Socket');
   net.Socket.returns(this.socket);
 
   this.poller = new Poller([ 1337 ]);
@@ -23,7 +20,7 @@ exports.setUp = function(cb) {
 };
 
 exports.tearDown = function(cb) {
-  net.Socket = this.net_Socket;
+  net.Socket.restore();
   cb(null);
 };
 
@@ -46,7 +43,8 @@ U['with successfull connect'] = function(test) {
   var self = this;
 
   var socket = self.socket;
-  socket.on = sinon.spy(filterOn('connect'));
+  self.socket.on.withArgs('connect').yields();
+  // socket.on = sinon.spy(filterOn('connect'));
 
   self.poller.poll(function(err) {
     test.ifError(err);
